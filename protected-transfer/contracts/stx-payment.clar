@@ -143,7 +143,7 @@
         
         ;; Process if enough signatures collected
         (if (>= (len (get authorized-signers signature-data)) (get required-signature-count signature-data))
-            (try! (execute-transaction transaction-identifier))
+            (execute-transaction transaction-identifier)
             (ok true)
         )
     )
