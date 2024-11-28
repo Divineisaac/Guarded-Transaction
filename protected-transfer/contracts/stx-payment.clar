@@ -11,6 +11,8 @@
 (define-constant ERROR_TRANSACTION_IN_PROGRESS (err u103))
 (define-constant ERROR_TRANSACTION_NOT_FOUND (err u104))
 (define-constant ERROR_TRANSACTION_ALREADY_COMPLETED (err u105))
+(define-constant ERROR_INVALID_RECIPIENT (err u106))
+(define-constant ERROR_INVALID_IDENTIFIER (err u107))
 
 ;; Data structures
 (define-map TransactionRecords
@@ -88,6 +90,7 @@
         (asserts! (not (var-get contract-emergency-stop)) ERROR_NOT_AUTHORIZED)
         (asserts! (>= initiator-balance payment-amount) ERROR_INSUFFICIENT_BALANCE)
         (asserts! (> payment-amount u0) ERROR_INVALID_TRANSACTION_AMOUNT)
+        (asserts! (not (is-eq payment-recipient transaction-initiator)) ERROR_INVALID_RECIPIENT)
         
         ;; Create transaction record
         (map-set TransactionRecords
@@ -128,6 +131,7 @@
             (signature-data (unwrap! (map-get? MultiSignatureRequests { transaction-identifier: transaction-identifier }) ERROR_TRANSACTION_NOT_FOUND))
             (current-authorized-signers (get authorized-signers signature-data))
         )
+        (asserts! (> transaction-identifier u0) ERROR_INVALID_IDENTIFIER)
         (asserts! (is-eq (get transaction-status transaction-record) "pending") ERROR_TRANSACTION_ALREADY_COMPLETED)
         (asserts! (get requires-multiple-signatures transaction-record) ERROR_NOT_AUTHORIZED)
         (asserts! (not (is-eq (index-of current-authorized-signers tx-sender) (some u0))) ERROR_NOT_AUTHORIZED)
@@ -157,6 +161,7 @@
             (transaction-recipient (get transaction-recipient transaction-record))
             (transaction-amount (get transaction-amount transaction-record))
         )
+        (asserts! (> transaction-identifier u0) ERROR_INVALID_IDENTIFIER)
         (asserts! (is-eq (get transaction-status transaction-record) "pending") ERROR_TRANSACTION_ALREADY_COMPLETED)
         (asserts! (>= (get-account-balance transaction-initiator) transaction-amount) ERROR_INSUFFICIENT_BALANCE)
         
